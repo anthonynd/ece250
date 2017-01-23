@@ -149,9 +149,11 @@ void Dynamic_range_stack::push( int const &obj )
         int *bigger_min_stack = new int[current_capacity*2];
 
         // Copy original array into new arrays
-        std::copy(stack_array, stack_array + current_capacity, bigger_stack);
-        std::copy(maximum_array, maximum_array + current_capacity, bigger_max_stack);
-        std::copy(minimum_array, minimum_array + current_capacity, bigger_min_stack);
+	for (int i = 0; i < current_capacity; i++) {
+	  bigger_stack[i] = stack_array[i];
+	  bigger_max_stack[i] = maximum_array[i];
+	  bigger_min_stack[i] = minimum_array[i];
+	}
 
         // Free old array memeory
         delete [] stack_array;
@@ -206,6 +208,7 @@ int Dynamic_range_stack::pop()
         minimum_array[min_count] = 0;
     }
 
+    stack_array[entry_count - 1] = 0;
     entry_count--;
 
     return popped;
