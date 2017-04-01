@@ -1,0 +1,43 @@
+new
+insert 0 1 4
+insert 0 2 6
+insert 0 4 1
+insert 1 5 4
+insert 2 3 6
+insert 2 5 3
+insert 2 6 6
+insert 4 7 9
+insert 5 6 8
+insert 5 9 5
+insert 6 10 6
+insert 7 8 3
+insert 7 11 7
+insert 8 9 3
+insert 8 11 4
+insert 8 12 6
+insert 9 12 4
+insert 9 13 4
+insert 11 12 6
+insert 11 14 8
+insert 11 15 3
+insert 13 17 9
+insert 14 15 1
+distance 0 1 4
+distance 0 2 6
+distance 0 3 12
+distance 0 4 1
+distance 0 5 8
+distance 0 6 12
+distance 0 7 10
+distance 0 8 13
+distance 0 9 13
+distance 0 10 18
+distance 0 11 17
+distance 0 12 17
+distance 0 13 17
+distance 0 14 21
+distance 0 15 20
+~connected 0 16
+delete
+summary
+exit
