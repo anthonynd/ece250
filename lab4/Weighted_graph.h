@@ -17,12 +17,12 @@
 
 #include <iostream>
 #include <limits>
-#include <stdio.h>
 #include "PriorityQueue.h"
 
 // include whatever classes you want
 
-class Weighted_graph {
+class Weighted_graph 
+{
 	private:
 		// your implementation here
 		//  you can add both private member variables and private member functions
@@ -32,6 +32,7 @@ class Weighted_graph {
         double *distance_to;
         int graph_size;
         bool *is_known;
+        int source_calculated;
         int total_edges;
         PriorityQueue *unknown_vertices;
 
@@ -44,7 +45,7 @@ class Weighted_graph {
 
 		double adjacent( int, int ) const;
 		int degree( int ) const;
-		double distance( int, int ) const;
+		double distance( int, int );
 		int edge_count() const;
 
 		void insert( int, int, double );
@@ -60,17 +61,21 @@ const double Weighted_graph::INF = std::numeric_limits<double>::infinity();
 
 Weighted_graph::Weighted_graph( int size ):
     total_edges( 0 ),
-    graph_size( size )
+    graph_size( size ),
+    source_calculated( -1 )
 {
     adjacency_matrix = new double*[graph_size];
-    for (int row_index = 0; row_index < graph_size; ++row_index) {
+    for (int row_index = 0; row_index < graph_size; ++row_index) 
+    {
         adjacency_matrix[row_index] = new double[graph_size];
-        for (int col_index = 0; col_index < graph_size; ++col_index) {
+        for (int col_index = 0; col_index < graph_size; ++col_index) 
+        {
             adjacency_matrix[row_index][col_index] = INF;
         }
     }
     degree_of = new int[graph_size];
-    for (int index = 0; index < graph_size; ++index) {
+    for (int index = 0; index < graph_size; ++index) 
+    {
         degree_of[index] = 0;
     }
     unknown_vertices = new PriorityQueue(graph_size);
@@ -78,10 +83,12 @@ Weighted_graph::Weighted_graph( int size ):
     is_known = new bool[graph_size];
 }
 
-Weighted_graph::~Weighted_graph() {
+Weighted_graph::~Weighted_graph() 
+{
     for (int i = 0; i < graph_size; ++i)
     {
         delete [] adjacency_matrix[i];
+        //delete [] distance_to[i];
     }
     delete [] adjacency_matrix;
     delete [] degree_of;
@@ -90,14 +97,18 @@ Weighted_graph::~Weighted_graph() {
     delete unknown_vertices;
 }
 
-double Weighted_graph::adjacent( int vertex1, int vertex2 ) const {
-    if (!exists( vertex1 ) || !exists( vertex2 )) {
+double Weighted_graph::adjacent( int vertex1, int vertex2 ) const 
+{
+    if (!exists( vertex1 ) || !exists( vertex2 )) 
+    {
         throw illegal_argument();
     } 
-    else if (vertex1 == vertex2) {
+    else if (vertex1 == vertex2) 
+    {
         return 0;
     } 
-    else {
+    else 
+    {
         return adjacency_matrix[vertex1][vertex2];
     }
 }
@@ -115,97 +126,93 @@ int Weighted_graph::degree( int vertex ) const { // O(1)
     return deg;
 }
 
-double Weighted_graph::distance( int source, int destination ) const 
+double Weighted_graph::distance( int source, int destination )
 {
-    // Initialization
-    unknown_vertices->clear();
-    //unknown_vertices->initialize( source );
-    for (int i = 0; i < graph_size; ++i)
+    if (source == source_calculated)
     {
-        //Vertex v = { i, INF };
-        //unknown_vertices->insert( v );
-        is_known[i] = false;
-        distance_to[i] = INF;
+        return distance_to[destination];
     }
-    //unknown_vertices->set_distance( source, 0 );
-    unknown_vertices->insert( source, 0 );
-    distance_to[source] = 0;
-
-    while (!unknown_vertices->is_empty())
+    else
     {
-        Vertex min = unknown_vertices->extract_min();
-
-        is_known[min.id] = true;
-
-        //if (min.id == destination)
-        if (is_known[destination])
-            return min.distance;
-            //break;
-
-        // For each unknown and adjacent vertex
-        for (int adj = 0; adj < graph_size; ++adj)
+        // Initialization
+        unknown_vertices->clear();
+        for (int i = 0; i < graph_size; ++i)
         {
-            //if (is_adjacent( min.id, adj ) && unknown_vertices->contains( adj ))
-            if (is_adjacent( min.id, adj ) && !is_known[adj])
+            is_known[i] = false;
+            distance_to[i] = INF;
+        }
+        unknown_vertices->insert( source, 0 );
+        distance_to[source] = 0;
+
+        while (!unknown_vertices->is_empty())
+        {
+            Vertex min = unknown_vertices->extract_min();
+
+            is_known[min.id] = true;
+
+            //if (is_known[destination])
+                //return distance_to[destination]; 
+
+            // For each unknown and adjacent vertex
+            for (int adj = 0; adj < graph_size; ++adj)
             {
-                double cost_to_adjacent = adjacency_matrix[min.id][adj];
-                if (distance_to[min.id] + cost_to_adjacent < distance_to[adj])
-                //if (min.distance + cost_to_adjacent < unknown_vertices->get(adj).distance)
+                if (is_adjacent( min.id, adj ) && !is_known[adj])
                 {
-                    //unknown_vertices->set_distance( adj, min.distance + cost_to_adjacent );
-                    distance_to[adj] = distance_to[min.id] + cost_to_adjacent;
-                    if (unknown_vertices->contains( adj ))
+                    // Relax
+                    double cost_to_adjacent = adjacency_matrix[min.id][adj];
+                    if (distance_to[min.id] + cost_to_adjacent < distance_to[adj])
                     {
-                        unknown_vertices->set_distance(adj, distance_to[adj]);
-                    }
-                    else
-                    {
-                        //Vertex v = { adj, distance_to[adj] };
-                        unknown_vertices->insert( adj, distance_to[adj] );
+                        distance_to[adj] = distance_to[min.id] + cost_to_adjacent;
+                        if (unknown_vertices->contains( adj ))
+                        {
+                            unknown_vertices->set_distance(adj, distance_to[adj]);
+                        }
+                        else
+                        {
+                            unknown_vertices->insert( adj, distance_to[adj] );
+                        }
                     }
                 }
             }
         }
+        source_calculated = source;
+        return distance_to[destination];
     }
-    return INF;
-    //return distance_to[destination];
 }
 
-int Weighted_graph::edge_count() const { // O(1)
+int Weighted_graph::edge_count() const 
+{ // O(1)
     return total_edges;
 }
 
-bool Weighted_graph::exists( int vertex ) const {
+bool Weighted_graph::exists( int vertex ) const 
+{
     return vertex < graph_size && vertex >= 0;
 }
 
-void Weighted_graph::insert( int vertex1, int vertex2, double weight ) 
-{ // O(1)
-    if (weight <= 0) 
+void Weighted_graph::insert( int vertex1, int vertex2, double weight )
+{
+    if (weight <= 0 || vertex1 == vertex2 || !exists( vertex1 ) || !exists( vertex2 )) 
     {
         throw illegal_argument();
     } 
     else 
     {
-        if (vertex1 == vertex2 || !exists( vertex1 ) || !exists( vertex2 )) 
+        source_calculated = -1;
+        if (adjacency_matrix[vertex1][vertex2] == INF) 
         {
-            throw illegal_argument();
-        } 
-        else 
-        {
-            if (adjacency_matrix[vertex1][vertex2] == INF) 
-            {
-                ++total_edges;
-                //degree_of[vertex1] = degree_of[vertex1] + 1;
-                //degree_of[vertex2] = degree_of[vertex2] + 1;
-            }
-            adjacency_matrix[vertex1][vertex2] = weight;
-            adjacency_matrix[vertex2][vertex1] = weight;
+            ++total_edges;
+            //degree_of[vertex1] = degree_of[vertex1] + 1;
+            //degree_of[vertex2] = degree_of[vertex2] + 1;
+        }
+        adjacency_matrix[vertex1][vertex2] = weight;
+        adjacency_matrix[vertex2][vertex1] = weight;
         }
     }
 }
 
-bool Weighted_graph::is_adjacent( int vertex1, int vertex2 ) const {
+bool Weighted_graph::is_adjacent( int vertex1, int vertex2 ) const 
+{
     double adj = adjacent( vertex1, vertex2 );
     return adj > 0 && adj != INF;
 }
